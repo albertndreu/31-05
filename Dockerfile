@@ -1,23 +1,14 @@
-# Βασική εικόνα από το Rocker project
-FROM rocker/r-ver:latest
+# Βασική εικόνα με R και Shiny
+FROM rocker/shiny:latest
 
-# Εγκατάσταση πακέτων συστήματος που χρειάζονται για το R και το RStudio
-RUN apt-get update && apt-get install -y \
-    libcurl4-openssl-dev \
-    libssl-dev \
-    libxml2-dev
+# Εγκατάσταση απαραίτητων βιβλιοθηκών R
+RUN R -e "install.packages(c('shiny', 'readr', 'readxl', 'ggplot2', 'plotly', 'Rtsne', 'caret', 'cluster', 'factoextra', 'class', 'e1071', 'caTools'))"
 
-# Αντιγραφή της εφαρμογής στο container
-COPY . /app
+# Αντιγραφή της εφαρμογής στον κατάλογο /srv/shiny-server/
+COPY app.R /srv/shiny-server/
 
-# Ρύθμιση του working directory
-WORKDIR /app
-
-# Εγκατάσταση των απαραίτητων R πακέτων
-RUN R -e "install.packages(c('shiny', 'dplyr', 'ggplot2'), repos='http://cran.rstudio.com/')"
-
-# Έκθεση του port που χρησιμοποιεί η εφαρμογή
+# Έκθεση του πόρτου 3838
 EXPOSE 3838
 
-# Εκκίνηση της εφαρμογής
-CMD ["R", "-e", "shiny::runApp('/app')"]
+# Εκκίνηση του Shiny Server
+CMD ["R", "-e", "shiny::runApp('/srv/shiny-server', host = '0.0.0.0', port = 3838)"]
